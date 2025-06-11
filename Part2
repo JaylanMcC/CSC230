@@ -1,0 +1,31 @@
+#include <M5Core2.h>  // Include M5Core2 library
+
+// Jaylan McCoy
+// 06/11/2025
+// Jaymccoy@uat.edu
+
+void setup() {
+  M5.begin();  // Initialize the M5 device
+
+  // Set the background color to white
+  M5.Lcd.fillScreen(WHITE);
+
+  // Set text color to your favorite color (e.g., BLUE)
+  M5.Lcd.setTextColor(BLUE);
+
+  // Set the text size to a larger value so your full name fills one line
+  M5.Lcd.setTextSize(2);  // You can experiment with different sizes here (1-3)
+
+  // Set the cursor position to the center of the screen
+  int xPos = (M5.Lcd.width() - M5.Lcd.textWidth("Jaylan McCoy")) / 2;
+  int yPos = (M5.Lcd.height() - 16) / 2;  // Adjust vertical position (16 is approximate height of text size 2)
+
+  M5.Lcd.setCursor(xPos, yPos);  // Set the cursor to the calculated position
+
+  // Print your name centered on the screen
+  M5.Lcd.print("Jaylan McCoy");
+}
+
+void loop() {
+  // No code needed in the loop for this task
+}
