@@ -1,0 +1,31 @@
+#include <M5Core2.h>  // Use M5Core2 library 
+
+// Jaylan McCoy
+// 06/11/2025
+// Jaymccoy@uat.edu
+
+void setup() {
+  M5.begin();  // Initialize the M5 device
+  
+  // Define an array of colors to cycle through
+  int colors[] = {RED, WHITE, BLUE, RED, WHITE, BLUE, BLACK};
+  
+  // Loop through the colors and fill the screen
+  for (int i = 0; i < 7; i++) {
+    M5.Lcd.fillScreen(colors[i]);
+    delay(1000);  // Delay 1 second for each color
+  }
+
+  // Set the cursor position for the text
+  M5.Lcd.setCursor(20, 20);
+  
+  // Set the text size
+  M5.Lcd.setTextSize(2);
+  
+  // Display text
+  M5.Lcd.print("Jaylan McCoy");
+}
+
+void loop() {
+  // Main loop is empty since this code only runs once in setup
+}
