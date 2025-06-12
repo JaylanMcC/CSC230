@@ -1,0 +1,67 @@
+#include <M5Core2.h>  // Include M5Core2 library
+
+// Define color combinations
+const int colorChoices[4][2] = {
+  {RED, YELLOW},    // Red text on Yellow background
+  {GREEN, BLACK},   // Green text on Black background
+  {BLUE, WHITE},    // Blue text on White background
+  {MAGENTA, CYAN}   // Magenta text on Cyan background
+};
+
+int currentTextColor = BLUE;        // Default text color
+int currentBackgroundColor = WHITE; // Default background color
+
+void setup() {
+  M5.begin();  // Initialize M5Core2 device
+
+
+  // Set the initial background and text color
+  M5.Lcd.fillScreen(currentBackgroundColor);
+  M5.Lcd.setTextColor(currentTextColor);
+  M5.Lcd.setTextSize(2);
+
+  // Set cursor and print the name initially
+  int xPos = (M5.Lcd.width() - M5.Lcd.textWidth("Jaylan McCoy")) / 2;
+  int yPos = (M5.Lcd.height() - 16) / 2;
+  M5.Lcd.setCursor(xPos, yPos);
+  M5.Lcd.print("Jaylan McCoy");
+}
+
+void loop() {
+  M5.update();  // Update button states
+
+  // Check if any button is pressed and update display colors accordingly
+  if (M5.BtnA.isPressed()) {
+    // Left Button (reset to original colors)
+    currentTextColor = BLUE;
+    currentBackgroundColor = WHITE;
+    updateDisplay();
+  }
+  else if (M5.BtnB.isPressed()) {
+    // Middle Button (random color combination)
+    int randomIndex = random(0, 4);  // Randomly pick an index (0-3)
+    currentTextColor = colorChoices[randomIndex][0];
+    currentBackgroundColor = colorChoices[randomIndex][1];
+    updateDisplay();
+  }
+  else if (M5.BtnC.isPressed()) {
+    // Right Button (set fixed color combination)
+    currentTextColor = BLUE;
+    currentBackgroundColor = RED;
+    updateDisplay();
+  }
+
+  delay(50);  // Small delay to debounce button presses
+}
+
+// Function to update the display with current colors
+void updateDisplay() {
+  M5.Lcd.fillScreen(currentBackgroundColor);  // Set background color
+  M5.Lcd.setTextColor(currentTextColor);      // Set text color
+
+  // Recalculate cursor position and print name again
+  int xPos = (M5.Lcd.width() - M5.Lcd.textWidth("Jaylan McCoy")) / 2;
+  int yPos = (M5.Lcd.height() - 16) / 2;
+  M5.Lcd.setCursor(xPos, yPos);
+  M5.Lcd.print("Jaylan McCoy");
+}
