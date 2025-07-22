@@ -1,46 +1,40 @@
 #include <WiFi.h>
-#include <WiFiAP.h>
-#include <WiFiClient.h>
-#include <WiFiGeneric.h>
-#include <WiFiMulti.h>
-#include <WiFiScan.h>
-#include <WiFiServer.h>
 #include <M5Core2.h>
-#include <WiFiSTA.h>
-#include <WiFiType.h>
-#include <WiFiUdp.h>
-#include <ArduinoJson.h>
 #include <IOXhop_FirebaseESP32.h>
-#include <IOXhop_FirebaseStream.h>
 #include "secret.h"
-
-// Assignment 8.1
+// Setup
 void setup() {
- Serial.begin(115200);
- M5.begin();
+ M5.begin();  // Initialize M5Core2
+ M5.Lcd.setTextSize(2);  // Set display text size
+ M5.Lcd.setCursor(10, 10);
+ M5.Lcd.println("Connecting WiFi...");
  WiFi.begin(SECRET_SSID, SECRET_PASS);
- Serial.print("Connecting ");
  while (WiFi.status() != WL_CONNECTED) {
-   Serial.print(".");
    delay(500);
-   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-Firebase.setString("Screen_Color", "Black");
+   M5.Lcd.print(".");
  }
- Serial.println();
- Serial.print("Connected: ");
- Serial.println(WiFi.localIP());
-  }
-
-
+ M5.Lcd.println("");
+ M5.Lcd.println("WiFi connected");
+ M5.Lcd.println(WiFi.localIP());
+ // Initialize Firebase
+ Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+ Firebase.setString("Screen_Color", "Black");  // Set initial state
+}
+// Main loop
 void loop() {
- String fireStatus = Firebase.getString("Screen_Color");
- if (fireStatus == "Black") {
-   Serial.println("Screen black");
-   M5.Lcd.fillScreen(BLACK);
- } else if (fireStatus == "Red") {
-   Serial.println("Red");
-   M5.Lcd.fillScreen(RED);
+ String screenColor = Firebase.getString("Screen_Color");  // Get color from Firebase
+ if (screenColor == "Black") {
+   M5.Lcd.fillScreen(BLACK);  // Set screen black
+ } else if (screenColor == "Red") {
+   M5.Lcd.fillScreen(RED);    // Set screen red
+ } else if (screenColor == "Green") {
+   M5.Lcd.fillScreen(GREEN);  // Set screen green
+ } else if (screenColor == "Blue") {
+   M5.Lcd.fillScreen(BLUE);   // Set screen blue
  } else {
-   Serial.println("non viable color");
+   M5.Lcd.setTextColor(WHITE);
+   M5.Lcd.setCursor(10, 100);
+   M5.Lcd.println("Invalid color");
  }
+ delay(2000);  // Wait before checking again
 }
