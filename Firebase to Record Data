@@ -1,0 +1,140 @@
+#include <M5Core2.h>
+#include <Arduino.h>
+#include <WiFi.h>
+#include <Firebase_ESP_Client.h>
+
+// Provide the token generation process info
+#include "addons/TokenHelper.h"
+// Provide the RTDB payload printing and other helper functions
+#include "addons/RTDBHelper.h"
+
+// Insert your Wi-Fi credentials
+#define WIFI_SSID "Scytale"
+#define WIFI_PASSWORD "Chaumurky26"
+
+// Insert Firebase project API Key
+#define API_KEY "AIzaSyDqKV7HCOy3bddTo_3kAMTA4FV0YcIE2UE"
+
+// Insert RTDB URL (Realtime Database URL)
+#define DATABASE_URL "https://data-holder-default-rtdb.firebaseio.com/"
+
+// Define Firebase objects
+FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config;
+
+// Other variables
+unsigned long sendDataPrevMillis = 0;
+int count = 0;
+bool signupOK = false;
+
+void setup() {
+  Serial.begin(115200);
+  M5.begin();
+
+   // Initialize LCD display
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setTextColor(WHITE);
+  M5.Lcd.setTextSize(2);
+  M5.Lcd.setCursor(10, 10);
+  M5.Lcd.println("Firebase Demo");
+
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(300);
+  }
+
+  Serial.println();
+  Serial.print("Connected with IP: ");
+  Serial.println(WiFi.localIP());
+  Serial.println();
+
+   // Display Wi-Fi connection status
+  M5.Lcd.setCursor(10, 30);
+  M5.Lcd.setTextColor(GREEN);
+  M5.Lcd.println("WiFi Connected!  ");
+
+  // Assign the API key
+  config.api_key = API_KEY;
+
+  // Assign the RTDB URL
+  config.database_url = DATABASE_URL;
+
+  // Sign up (Anonymous)
+  Serial.println("Signing up to Firebase...");
+  M5.Lcd.setCursor(10, 90);
+  M5.Lcd.setTextColor(CYAN);
+  M5.Lcd.println("Connecting Firebase...");
+  
+  if (Firebase.signUp(&config, &auth, "", "")) {
+    Serial.println("Firebase signup successful");
+    signupOK = true;
+    M5.Lcd.setCursor(10, 90);
+    M5.Lcd.setTextColor(GREEN);
+    M5.Lcd.println("Firebase Connected! ");
+  } else {
+    Serial.printf("Firebase signup failed: %s\n", config.signer.signupError.message.c_str());
+    M5.Lcd.setCursor(10, 90);
+    M5.Lcd.setTextColor(RED);
+    M5.Lcd.println("Firebase Failed!   ");
+  }
+
+  // Assign the callback function for token generation
+  config.token_status_callback = tokenStatusCallback;
+
+  // Begin Firebase and enable Wi-Fi auto-reconnect
+  Firebase.begin(&config, &auth);
+  Firebase.reconnectWiFi(true);
+  
+  // Clear the screen for data display
+  delay(2000);
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(10, 10);
+  M5.Lcd.setTextColor(WHITE);
+  M5.Lcd.println("Data Upload Status:");
+}
+
+void loop(){
+  // Check if Firebase is ready and not currently sending data to avoid overwhelming the database
+  if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0)){
+    sendDataPrevMillis = millis();
+    
+    // Write an Int number to the database path test/int
+    if (Firebase.RTDB.setInt(&fbdo, "test/int", count)){
+      Serial.println("PASSED");
+      Serial.println("PATH: " + fbdo.dataPath());
+      Serial.println("TYPE: " + fbdo.dataType());
+      
+      // Display the integer value being uploaded to Firebase
+      M5.Lcd.setCursor(10, 50);
+      M5.Lcd.setTextColor(GREEN);
+      M5.Lcd.printf("Uploading Int: %d", count);
+    }
+    else {
+      Serial.println("FAILED");
+      Serial.println("REASON: " + fbdo.errorReason());
+    }
+    count++; // Increment counter for next iteration
+    
+    // Write a Float number to the database path test/float
+    if (Firebase.RTDB.setFloat(&fbdo, "test/float", 0.01 + random(0,100))){
+      Serial.println("PASSED");
+      Serial.println("PATH: " + fbdo.dataPath());
+      Serial.println("TYPE: " + fbdo.dataType());
+      
+      // Display the float value being uploaded to Firebase
+      float uploadedFloat = 0.01 + random(0,100);
+      M5.Lcd.setCursor(10, 95);
+      M5.Lcd.setTextColor(BLUE);
+      M5.Lcd.printf("Uploading Float: %.2f", uploadedFloat);
+    }
+    else {
+      Serial.println("FAILED");
+      Serial.println("REASON: " + fbdo.errorReason());
+    }
+  }
+}
+
+
