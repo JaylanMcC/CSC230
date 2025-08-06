@@ -1,0 +1,55 @@
+#include <M5Core2.h>
+#include <WiFi.h>
+#include <WebServer.h>
+#include <SPIFFS.h>
+
+const char* ssid = "FlagViewer";
+const char* password = ""; // Null for visibility
+
+WebServer server(80);
+
+void showFlag(String filename) {
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.drawJpgFile(SPIFFS, ("/" + filename + ".jpg").c_str(), 0, 0);
+  handleRoot(); 
+}
+
+void handleUSA() { showFlag("usa"); }
+void handleJapan() { showFlag("japan"); }
+void handleBrazil() { showFlag("brazil"); }
+void handleDenmark() {
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.drawJpgFile(SPIFFS, "/denmark.jpg", 0, 0);
+  handleRoot(); // Or return to menu
+}
+
+void handleRoot() {
+  String html = "<html><head><title>Flags</title></head><body>";
+  html += "<h1>Select a Country Flag</h1>";
+  html += "<button onclick=\"location.href='/usa'\">USA</button><br>";
+  html += "<button onclick=\"location.href='/japan'\">Japan</button><br>";
+  html += "<button onclick=\"location.href='/brazil'\">Brazil</button>";
+  html += "</body></html>";
+  server.send(200, "text/html", html);
+}
+
+void setup() {
+  M5.begin();
+  M5.Lcd.setTextSize(2);
+  SPIFFS.begin();
+
+  WiFi.softAP(ssid, password);
+  IPAddress IP = WiFi.softAPIP();
+  M5.Lcd.println("Flag Viewer IP:");
+  M5.Lcd.println(IP);
+
+  server.on("/", handleRoot);
+  server.on("/usa", handleUSA);
+  server.on("/japan", handleJapan);
+  server.on("/brazil", handleBrazil);
+  server.begin();
+}
+
+void loop() {
+  server.handleClient();
+}
