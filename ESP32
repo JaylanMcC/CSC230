@@ -1,0 +1,52 @@
+#include <M5Core2.h>
+#include <WiFi.h>
+#include <WebServer.h>
+
+const char* ssid = "M5ColorAP";
+const char* password = ""; // Null password helps visibility
+
+WebServer server(80);
+bool isBlue = true;
+
+void handleRoot() {
+  String html = "<html><head><title>Color Switch</title></head><body>";
+  html += "<h1>Choose a Screen Color</h1>";
+  html += "<button onclick=\"location.href='/blue'\">Blue</button>";
+  html += "<button onclick=\"location.href='/red'\">Red</button>";
+  html += "</body></html>";
+  server.send(200, "text/html", html);
+}
+
+void handleBlue() {
+  M5.Lcd.fillScreen(BLUE);
+  isBlue = true;
+  handleRoot();
+}
+
+void handleRed() {
+  M5.Lcd.fillScreen(RED);
+  isBlue = false;
+  handleRoot();
+}
+
+void setup() {
+  M5.begin();
+  M5.Lcd.setTextSize(2);
+  M5.Lcd.setCursor(10, 10);
+  M5.Lcd.println("Starting AP...");
+
+  WiFi.softAP(ssid, password);
+  IPAddress IP = WiFi.softAPIP();
+
+  M5.Lcd.println("AP IP address: ");
+  M5.Lcd.println(IP);
+
+  server.on("/", handleRoot);
+  server.on("/blue", handleBlue);
+  server.on("/red", handleRed);
+  server.begin();
+}
+
+void loop() {
+  server.handleClient();
+}
